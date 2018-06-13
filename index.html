@@ -116,7 +116,7 @@ function check() {
 
     let result = document.getElementById('result')
     while (result.lastChild)
-          result.removeChild(result.lastChild);
+          result.removeChild(result.lastChild)
 
     while (text) {
         let line
@@ -145,11 +145,11 @@ function check() {
                 i += 1
             }
 
-            let span = document.createElement('span');
+            let span = document.createElement('span')
             if (60 < sentence.length - i)
-                span.setAttribute('class', 'red');
+                span.setAttribute('class', 'red')
             else if (50 <= sentence.length - i)
-                span.setAttribute('class', 'yellow');
+                span.setAttribute('class', 'yellow')
             let n = document.createTextNode(sentence)
             span.appendChild(n)
             result.appendChild(span)
