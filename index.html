@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang='ja'>
+<head>
+<meta charset='UTF-8'>
+<title>長文と漢字使用率のチェック</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  Copyright 2018 Esrille Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<style>
+body {
+  margin: 0px 30px;
+  font-family: sans-serif;
+}
+h1 {
+  font-size: 1.6em;
+  font-weight: normal;
+}
+table {
+  margin: 1.5em;
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid silver;
+  padding: 0.2em 1em;
+}
+th {
+  font-family: sans-serif;
+  font-weight: normal;
+}
+hr {
+  margin: 2em;
+}
+footer {
+  margin-top: 2em;
+  text-align: right;
+  color: gray;
+  font-size: smaller;
+}
+.note {
+  font-size: smaller;
+}
+.red {
+  background-color: #f99;
+}
+.yellow {
+  background-color: #ff9;
+}
+#result {
+  border: 1px silver solid;
+  white-space: pre-wrap;
+  margin: 1.5em;
+}
+</style>
+</head>
+<body>
+<h1>長文と漢字使用率のチェック</h1>
+したのテキスト ボックスに文章を入力して、[評価]ボタンをおします。
+<p>
+<form>
+  <textarea id='text' cols='80' rows='10' style='overflow: scroll'></textarea><br>
+  <input type='checkbox' id='kansuuzi'>
+  <label for='kansuuzi'>漢数字を漢字使用率にふくめる</label>
+</form>
+<p>
+<button onclick="check()">評価</button>
+
+例: <span class='yellow'>ながめの文</span>, <span class='red'>ながすぎる文</span>
+
+<table>
+<tr>
+<th>漢字使用率</th><td id='ratio'>0%</td>
+</table>
+
+<div id='result'>
+</div>
+
+<footer>
+Copyright 2018 <a href='http://www.esrille.com/'>Esrille Inc.</a>
+</footer>
+
+<script>
+function check() {
+    let text = document.getElementById('text').value
+    if (!document.getElementById('kansuuzi').checked) {
+        text = text.replace(/一/g, '1')
+        text = text.replace(/二/g, '2')
+        text = text.replace(/三/g, '3')
+        text = text.replace(/四/g, '4')
+        text = text.replace(/五/g, '5')
+        text = text.replace(/六/g, '6')
+        text = text.replace(/七/g, '7')
+        text = text.replace(/八/g, '8')
+        text = text.replace(/九/g, '9')
+        text = text.replace(/〇/g, '0')
+    }
+    let m
+    m = text.match(/[々〇〻\u2E80-\u2FDF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87F][\uDC00-\uDFFF]/g)
+    let count = m ? m.length : 0
+
+    let ratio = count / text.length * 100
+    ratio = Math.round(ratio * 100) / 100
+    document.getElementById('ratio').innerHTML = ratio
+
+    let result = document.getElementById('result')
+    while (result.lastChild)
+          result.removeChild(result.lastChild);
+
+    while (text) {
+        let line
+        let i = text.search('\n')
+        if (i == -1) {
+            line = text
+            text = ''
+        } else {
+            line = text.substring(0, i)
+            text = text.substring(i + 1)
+        }
+        do {
+            let sentence
+            let i = line.search('。')
+            if (i == -1) {
+                sentence = line
+                line = ''
+            } else {
+                i += 1
+                sentence = line.substring(0, i)
+                line = line.substring(i)
+            }
+
+            i = 0
+            while (sentence && sentence[i].match(/[ \u3000]/)) {
+                i += 1
+            }
+
+            let span = document.createElement('span');
+            if (60 < sentence.length - i)
+                span.setAttribute('class', 'red');
+            else if (50 <= sentence.length - i)
+                span.setAttribute('class', 'yellow');
+            let n = document.createTextNode(sentence)
+            span.appendChild(n)
+            result.appendChild(span)
+        } while (line)
+        result.appendChild(document.createTextNode('\n'))
+    }
+}
+</script>
+</body>
+</html>
