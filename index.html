@@ -23,13 +23,15 @@
 body {
   margin: 0px 30px;
   font-family: sans-serif;
+  text-align: justify;
+  max-width: 620px;
 }
 h1 {
   font-size: 1.6em;
   font-weight: normal;
 }
 table {
-  margin: 1.5em;
+  margin: 1.5em 0;
   border-collapse: collapse;
 }
 th, td {
@@ -40,16 +42,14 @@ th {
   font-family: sans-serif;
   font-weight: normal;
 }
-hr {
-  margin: 2em;
+button, input, select, textarea {
+  font-family : inherit;
+  font-size : 100%;
 }
 footer {
-  margin-top: 2em;
+  margin: 1.5em 0;
   text-align: right;
   color: gray;
-  font-size: smaller;
-}
-.note {
   font-size: smaller;
 }
 .red {
@@ -61,7 +61,6 @@ footer {
 #result {
   border: 1px silver solid;
   white-space: pre-wrap;
-  margin: 1.5em;
 }
 </style>
 </head>
@@ -70,7 +69,7 @@ footer {
 したのテキスト ボックスに文章を入力して、[評価]ボタンをおします。
 <p>
 <form>
-  <textarea id='text' cols='80' rows='10' style='overflow: scroll'></textarea><br>
+  <textarea id='text' cols='60' rows='10' style='overflow: scroll'></textarea><br>
   <input type='checkbox' id='kansuuzi'>
   <label for='kansuuzi'>漢数字を漢字使用率にふくめる</label>
 </form>
@@ -79,15 +78,19 @@ footer {
 
 例: <span class='yellow'>ながめの文</span>, <span class='red'>ながすぎる文</span>
 
+<hr>
+
 <table>
-<tr>
-<th>漢字使用率</th><td id='ratio'>0%</td>
+<tr><th>漢字使用率(%)</th><td id='ratio'>0</td>
+<tr><th>平均文長(字)</th><td id='average'></td>
 </table>
 
 <div id='result'>
 </div>
 
 <footer>
+このページは、GitHubで公開しています。<br>
+<a href='https://github.com/esrille/japanese-sentence-checker'>https://github.com/esrille/japanese-sentence-checker</a><br>
 Copyright 2018 <a href='http://www.esrille.com/'>Esrille Inc.</a>
 </footer>
 
@@ -118,6 +121,9 @@ function check() {
     while (result.lastChild)
           result.removeChild(result.lastChild)
 
+    let sentenceCount = 0
+    let sentenceLength = 0
+
     while (text) {
         let line
         let i = text.search('\n')
@@ -131,7 +137,8 @@ function check() {
         do {
             let sentence
             let i = line.search('。')
-            if (i == -1) {
+            let isSentence = (i != -1)
+            if (!isSentence) {
                 sentence = line
                 line = ''
             } else {
@@ -141,20 +148,36 @@ function check() {
             }
 
             i = 0
-            while (sentence && sentence[i].match(/[ \u3000]/)) {
+            while (i < sentence.length && sentence[i].match(/[ \u3000]/)) {
                 i += 1
+            }
+            if (0 < i) {
+                result.appendChild(document.createTextNode(sentence.substring(0, i)))
+                sentence = sentence.substring(i)
+            }
+
+            if (isSentence) {
+                sentenceCount += 1
+                sentenceLength += sentence.length
             }
 
             let span = document.createElement('span')
-            if (60 < sentence.length - i)
+            if (60 < sentence.length)
                 span.setAttribute('class', 'red')
-            else if (50 <= sentence.length - i)
+            else if (50 <= sentence.length)
                 span.setAttribute('class', 'yellow')
             let n = document.createTextNode(sentence)
             span.appendChild(n)
             result.appendChild(span)
         } while (line)
         result.appendChild(document.createTextNode('\n'))
+
+        if (0 < sentenceCount) {
+            let average = Math.round(sentenceLength / sentenceCount * 10) / 10
+            document.getElementById('average').innerHTML = average
+        } else {
+            document.getElementById('average').innerHTML = ''
+        }
     }
 }
 </script>
